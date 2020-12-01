@@ -1,6 +1,5 @@
 # WarMenu
-Inspired by @MrDaGree  [GUI Management (Maker) | Mod Menu Style Menus (uhh.. ya)](https://forum.fivem.net/t/release-gui-management-maker-mod-menu-style-menus-uhh-ya)
-
+Inspired by [Dear ImGui](https://github.com/ocornut/imgui) and GTA V menu system
 
 ## How to Install
 1. Place it to `/resources` folder
@@ -10,133 +9,101 @@ Inspired by @MrDaGree  [GUI Management (Maker) | Mod Menu Style Menus (uhh.. ya)
 
 ## Features
 * Backward compatibility
-* Original GTA V look 'n' feel
-* Customize each menu separately
-* Create nested menus in one line
-* It sounds
+* GTA V-like look'n'feel
+* Rich menu style customization
+* Lots of built-in controls
+* Demo menu
 
-
-## Usage
-```lua
-Citizen.CreateThread(function()
-	WarMenu.CreateMenu('test', 'Test title')
-	WarMenu.CreateSubMenu('closeMenu', 'test', 'Are you sure?')
-
-	local checkBoxState = false
-
-	local comboBoxItems = { 'Foo', 'Bar' }
-	local comboBoxIndex = 1
-
-	while true do
-		if not WarMenu.IsAnyMenuOpened() then
-			if IsControlJustReleased(0, 244) then
-				WarMenu.OpenMenu('test')
-			end
-		elseif WarMenu.IsMenuOpened('test') then
-			-- Basic control usage
-			if WarMenu.Button('Simple button') then
-			end
-
-			if WarMenu.CheckBox('CheckBox', checkBoxState) then
-				checkBoxState = not checkBoxState
-			end
-
-			local _, index = WarMenu.ComboBox('ComboBox', comboBoxItems, comboBoxIndex)
-			if comboBoxIndex ~= index then
-				comboBoxIndex = index
-			end
-
-			-- Advanced control usage
-			WarMenu.Button('Advanced button')
-			if WarMenu.IsItemHovered() then
-				if WarMenu.IsItemSelected() then
-				end
-			end
-
-			local selected, index = WarMenu.ComboBox('ComboBox Advanced', comboBoxItems, comboBoxIndex)
-			if WarMenu.IsItemHovered() then
-				if selected and comboBoxIndex ~= index then
-					comboBoxIndex = index
-				end
-			end
-
-			-- Menu button example
-			if WarMenu.MenuButton('Exit', 'closeMenu') then
-			end
-
-			WarMenu.Display()
-		elseif WarMenu.IsMenuOpened('closeMenu') then
-			if WarMenu.Button('Yes') then
-				WarMenu.CloseMenu()
-			end
-
-			if WarMenu.MenuButton('No', 'test') then
-			end
-
-			WarMenu.Display()
-		end
-
-		Citizen.Wait(0)
-	end
-end)
-```
-
+## Demo menu
+You can read its source code to understand how framework works   
+To run it, just add `client_script @warmenu/warmenu_demo.lua` to any of your resources which are using WarMenu
 
 ## API
 ```lua
-WarMenu.SetDebugEnabled(enabled) -- false by default
-WarMenu.IsDebugEnabled()
-
-WarMenu.CreateMenu(id, title)
-WarMenu.CreateSubMenu(id, parent, subTitle)
+--- * - optional parameters
+WarMenu.CreateMenu(id, title, subTitle*, style*)
+WarMenu.CreateSubMenu(id, parent, subTitle*, style*)
 
 WarMenu.CurrentMenu() -- id
 
 WarMenu.OpenMenu(id)
-WarMenu.IsMenuOpened(id)
+WarMenu.Begin(id)
 WarMenu.IsAnyMenuOpened()
 WarMenu.IsMenuAboutToBeClosed() -- return true if current menu will be closed in next frame
 WarMenu.CloseMenu()
 
 -- Controls
-WarMenu.Button(text, subText)
-WarMenu.MenuButton(text, id, subText)
-WarMenu.CheckBox(text, boolState)
+WarMenu.Button(text, subText*)
+WarMenu.InputButton(text, windowTitleEntry*, defaultText*, maxLength*, subText*)
+WarMenu.SpriteButton(text, dict, name, r*, g*, b*, a*)
+WarMenu.MenuButton(text, id, subText*)
+WarMenu.CheckBox(text, checked)
 WarMenu.ComboBox(text, items, currentIndex)
+WarMenu.ToolTip(text, width*, flipHorizontal*)
 -- Use them in loop to draw
 -- They return true if were selected OR you can use functions below for more granual control
 WarMenu.IsItemHovered()
 WarMenu.IsItemSelected()
 -- See Usage section for more details
 
-WarMenu.Display() -- Processing key events and menu logic, use it in loop
+WarMenu.End() -- Processing key events and menu logic, use it in loop
 
 
 -- Customizable options
-WarMenu.SetMenuWidth(id, width) -- [0.0..1.0]
-WarMenu.SetMenuX(id, x) -- [0.0..1.0] top left corner
-WarMenu.SetMenuY(id, y) -- [0.0..1.0] top
-WarMenu.SetMenuMaxOptionCountOnScreen(id, count) -- 10 by default
-
+--- Menu
 WarMenu.SetMenuTitle(id, title)
-WarMenu.SetMenuTitleColor(id, r, g, b, a)
-WarMenu.SetMenuSubTitleColor(id, r, g, b, a)
-WarMenu.SetMenuTitleBackgroundColor(id, r, g, b, a)
--- or
-WarMenu.SetMenuTitleBackgroundSprite(id, textureDict, textureName)
-
 WarMenu.SetMenuSubTitle(id, text) -- it will uppercase automatically
 
-WarMenu.SetMenuBackgroundColor(id, r, g, b, a)
-WarMenu.SetMenuTextColor(id, r, g, b, a)
-WarMenu.SetMenuSubTextColor(id, r, g, b, a)
-WarMenu.SetMenuFocusColor(id, r, g, b, a)
+--- Style
+--- Property name can be extracted from setter signature, i. e. 'SetMenuTitleColor' -> 'titleColor'
+--- Example: local style = { titleColor = { 255, 255, 255 }, maxOptionCountOnScreen = 7, buttonPressedSound = { name = 'name', set = 'set' } }
+WarMenu.SetMenuStyle(id, style)
 
+WarMenu.SetMenuX(id, x) -- [0.0..1.0] top left corner
+WarMenu.SetMenuY(id, y) -- [0.0..1.0] top
+WarMenu.SetMenuWidth(id, width) -- [0.0..1.0]
+WarMenu.SetMenuMaxOptionCountOnScreen(id, count) -- 10 by default
+
+WarMenu.SetMenuTitleColor(id, r, g, b, a*)
+WarMenu.SetMenuSubTitleColor(id, r, g, b, a*)
+
+WarMenu.SetMenuTitleBackgroundColor(id, r, g, b, a*)
+-- or
+WarMenu.SetMenuTitleBackgroundSprite(id, dict, name)
+
+WarMenu.SetMenuBackgroundColor(id, r, g, b, a*)
+WarMenu.SetMenuTextColor(id, r, g, b, a*)
+WarMenu.SetMenuSubTextColor(id, r, g, b, a*)
+WarMenu.SetMenuFocusColor(id, r, g, b, a*)
+WarMenu.SetMenuFocusTextColor(id, r, g, b, a*)
 WarMenu.SetMenuButtonPressedSound(id, name, set) -- https://pastebin.com/0neZdsZ5
 ```
 
 
 ## Changelog
+### 1.5
+* Added styles support
+* Added `WarMenu.SetMenuStyle` API
+* Added `WarMenu.CreateMenu` subTitle parameter
+* Corrected title background aspect ratio
+* Fixed minor bugs
+### 1.4
+* Added `WarMenu.InputButton` API
+* Improved performance
+* Improved key mapping
+* Marked optional parameters in API section
+### 1.3
+* Added Demo Menu
+* Added `WarMenu.SetMenuFocusTextColor` API
+* Fixed `WarMenu.SetMenuFocusColor` API
+* Fixed `WarMenu.SpriteButton` edge case
+* Improved performance and memory consumption
+* Removed debug prints
+* Improved code style
+### 1.2
+* Added `WarMenu.SpriteButton` API
+### 1.1
+* Added `WarMenu.ToolTip` API
 ### 1.0
 * Added `WarMenu.IsItemHovered` and `WarMenu.IsItemSelected` API
 * Implemented restoring parent menu selected index after closing submenu

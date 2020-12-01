@@ -3,4 +3,7 @@ game 'gta5'
 
 description 'FiveM Lua Menu Framework'
 
-client_script 'warmenu.lua'
+files {
+	'warmenu.lua',
+	'warmenu_demo.lua'
+}
